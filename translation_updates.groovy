@@ -19,7 +19,7 @@
 
 /* 
  * @versions: 
- * 0.0.1: 	Based on pseudo-translate script
+ * 0.0.1: 	Initial version
  */
 
 // user-defined constants
@@ -29,7 +29,7 @@
 threshold_ratio = 2 
 updateSeparators = false
 
-
+// documentation is available here: https://github.com/capstanlqc/omegat-translation-updates/blob/master/README.md
 
 
 
@@ -349,23 +349,4 @@ def gui(){
 
 }
 
-
-
-
-// todo:
-
-// validate changes spreadsheet: run some checks in the structure of the file: find the expected sheet and columns in it
-
-// bookmark the initial segment before running the script and go back to it after the script has run
-
-// do the replacement for the specified target_languauge
-
-// add instructions to the preamble of the script
-
-// check if ignoreFileContext="true" in omegat/filters.xml to ignore file
-
-// get decimal separator from other translations in the project
-
-// if one entry in the updates sheet provides key and file but the current translation is not alternative, make it alternative (prevent auto-propagation)
-
-// same thing for thousand separators
+return

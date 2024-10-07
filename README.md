@@ -66,6 +66,14 @@ Let's see what will happen depending on what data you provide:
 - `update`, `source`, `key` and `file`: the script will update the translation in a segment there both source text and context properties (file, key) match.
 	> If you want the update an alternative translation, provide the context properties (`file`, `key`) of that segment. Note: the current translation must be already alternative so that the translation does not auto-propagate.
 
+In the `locale`, you can provide a list of literal values (BCP-47 language tags) or some patterns (you can use the asterisk `*` as a wildcard):
+
+- use `*` for any/all target languages
+- use `ru-*` for all Russian variants
+- use `*-ES` for all languages in Spain
+- use a list of locales, e.g. `fr-FR`, `fr-BE`, `nl-BE`
+- use a list of patterns, e.g. `fr-*`, `*-BE`
+
 ## FAQ
 
 - What happens if the target segment is already corrected?
@@ -78,3 +86,12 @@ If some manual harmonization is necessary, you will get some info and the list o
 
 - Search for `(?<=\d+)[,](?=\d{1,2}(?!\d))` and replace with `,` to use comma as decimal separator
 - Search for `(?<=\d+)[,](?=\d{1,2}(?!\d))` and replace with `.` to use dot as decimal separator
+
+## Backlog
+
+- If one entry in the updates sheet provides key and file but the current translation is not alternative, make it alternative (to prevent auto-propagation)
+- Validate changes spreadsheet: run some checks in the structure of the file: find the expected sheet and columns in it
+- Bookmark the initial segment before running the script and go back to it after the script has run
+- Do the replacement for the specified target language(s)
+- Ignore the file property if `ignoreFileContext="true"` in `omegat/filters.xml` 
+- Add same thing for thousand separators (as there's for decimal separators)
