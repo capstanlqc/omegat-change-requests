@@ -1,18 +1,6 @@
 /* :name = Translation updates :description=
  * 
  * @author      Manuel Souto Pico, Kos Ivantsov
- * @date        2024-10-04
- * @version     0.0.1
- */
-
-/* 
- * @versions: 
- * 0.0.1: 	Based on pseudo-translate script
- */
-
-/* :name = Translation updates :description=
- * 
- * @author      Manuel Souto Pico, Kos Ivantsov
  * @date        2024-10-07
  * @version     0.0.1
  */
@@ -31,15 +19,12 @@ updateSeparators = false
 
 // documentation is available here: https://github.com/capstanlqc/omegat-translation-updates/blob/master/README.md
 
-
-
-
-
-
 @Grab(group='org.apache.poi', module='poi-ooxml', version='5.2.3')
 
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.DataFormatter
 import java.io.FileInputStream
 import org.omegat.util.StaticUtils
 
@@ -49,19 +34,17 @@ configDir = StaticUtils.getConfigDir()
 // filePath = rootDirPath + File.separator + "config" + File.separator + "change_requests.xlsx"
 filePath = configDir + File.separator + "changes" + File.separator + "translation_updates.xlsx"
 
-
-
-
 // parse excel data using headers as keys
 def parseExcel(filePath) {
     InputStream inputStream = new FileInputStream(filePath)
     Workbook workbook = new XSSFWorkbook(inputStream)
     Sheet sheet = workbook.getSheet("updates")
+    def dataFormatter = new DataFormatter()
     // def sheet = workbook.getSheetAt(0) // get the first sheet
-    
+
     def headers = [] // To store header names
     def dataList = [] // To store each row as a map
-    
+
     // Get the header row (assuming headers are in the first row)
     def headerRow = sheet.getRow(0)
     headerRow.cellIterator().each { Cell cell ->
@@ -80,44 +63,18 @@ def parseExcel(filePath) {
 		// assuming `headers` has the correct length
 		(0..<headers.size()).each { index ->
 		    def cell = row.getCell(index, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
-		    // def cellValue = cell ? cell.toString() : "" // handle null cells by setting them as empty strings
 
 		    // convert all cell types to string before usage
-            def cellValue
-            switch (cell.cellType) {
-                case CellType.NUMERIC:
-                    // convert numeric cell to string
-                    if (DateUtil.isCellDateFormatted(cell)) {
-                        cellValue = cell.dateCellValue.toString() // convert date to string
-                    } else {
-                        cellValue = cell.numericCellValue.toString() // convert number to string
-                    }
-                    break
-                case CellType.BOOLEAN:
-                    // convert boolean cell to string
-                    cellValue = cell.booleanCellValue.toString()
-                    break
-                case CellType.STRING:
-                    // no conversion needed for string cells
-                    cellValue = cell.stringCellValue
-                    break
-                case CellType.FORMULA:
-                    // evaluate formula and convert the result to string
-                    cellValue = cell.cellFormula // use the formula itself or evaluate it
-                    break
-                default:
-                	// console.println(">>>>> cell is empty")
-                    cellValue = ""
-            }
+            def cellValue = dataFormatter.formatCellValue(cell)
 		    rowData[headers[index]] = cellValue // use header as key
 		}
-        
+
         dataList << rowData
     }
-    
+
     workbook.close()
     inputStream.close()
-    
+
     return dataList // return list of maps where keys are the column headers
 }
 
@@ -133,16 +90,14 @@ parsedData.each { row ->
 }
 */
 
-
 // console.println(parsedData)
-
 
 // 21={key=tu4_0, file=batch/S24030067.html, source=FOO, target=DEFAULT TRANSLATION ENTERED BY THE USER , update=BAR, locale=null}
 
 def changeSeparator(text, separator, type) {
 
 	if (separator == null || text == null) return text
-	
+
 	decimalExpressionPattern = ~/(?<=\d+)[.,](?=\d{1,2}(?!\d))/
 	thousandExpressionPattern = ~/(?<=\d+)[., ](?=\d{3}(?!\d))/
 
@@ -150,7 +105,6 @@ def changeSeparator(text, separator, type) {
 
 	return text.replaceAll(pattern, separator)
 }
-
 
 def findUpdate(sourceText, idProp, fileProp, targetText, decimalSeparator) {
 
@@ -163,14 +117,15 @@ def findUpdate(sourceText, idProp, fileProp, targetText, decimalSeparator) {
 	    // console.println("\t${rowValues}")
 	    // 	[key:66b57a92bdc858.21493206_91c85f899e56014969935fefd68830b9_117, file:03_COS_SCI-C_N/PISA_2025FT_SCI_CACERS026-PlantMilks.xml, source:0.7, target:0.7, update:0.70, locale:*]
 
-	    def targetMatchRequired = (rowValues.target == null || rowValues.target == "") ? false : true;
-	    def contextMatchRequired = (rowValues.key == null || rowValues.key == "") ? false : true;
+	    def targetMatchRequired = (targetText ==~ /^(0[.,][34579]|1[.,]5|1[89][.,]5|2[07][.,]8|5[.,]4|6(28)?[.,]2)$/ || rowValues.target == null || rowValues.target == "") ? false : true
+	    def contextMatchRequired = (rowValues.key == null || rowValues.key == "") ? false : true
 
+	    // console.println("targetMatchRequired for '${sourceText}': ${targetMatchRequired}")
 	    if (targetMatchRequired && targetText != rowValues.target)  {
 	    	return false
 		}
 
-	    if (contextMatchRequired && rowValues.key != idProp) {
+	    if (contextMatchRequired && rowValues.key + "_0" != idProp) {
 	    	return false
 	    }
 
@@ -178,18 +133,22 @@ def findUpdate(sourceText, idProp, fileProp, targetText, decimalSeparator) {
 	    	return false
 	    } 
 
-	    if (sourceText != rowValues.source)  {
+	    else if (sourceText != rowValues.source)  {
 	    	return false
 		}
 
 		return true
 	}
-	
+
 	// return result?.value?.update ?: null
 	def newTargetText = result?.update ?: null
-	return changeSeparator(newTargetText, decimalSeparator, type = "decimal")
-}
 
+	if (newTargetText && targetText ==~ /^(0[.,][34579]|1[.,]5|1[89][.,]5|2[07][.,]8|5[.,]4|6(28)?[.,]2)$/) { 
+		newTargetText = targetText + "0" 
+	}
+	// return changeSeparator(newTargetText, decimalSeparator, type = "decimal")
+	return (newTargetText == "2.0") ? changeSeparator(newTargetText, decimalSeparator, type = "decimal") : newTargetText
+}
 
 def findMatches(ste, pattern, type) {
 
@@ -217,7 +176,6 @@ def findMatches(ste, pattern, type) {
 	}
 	return numericalExpressions
 }
-
 
 console.println("====================================")
 
@@ -294,7 +252,6 @@ def gui(){
 	console.println("The project contains ${decimalsWithDot.size()} numerical expressions that use dot as decimal separator.")
 	console.println("--------------------------------------------------------------")
 
-	
 	if (updateSeparators == false) {
 		def highest = Math.max(decimalsWithComma.size(), decimalsWithDot.size())
 		def lowest = Math.min(decimalsWithComma.size(), decimalsWithDot.size())
@@ -305,7 +262,6 @@ def gui(){
 			}
 		}
 	}
-
 
 	decimalSeparator = null
 	if ((updateSeparators && decimalsWithComma.size() > decimalsWithDot.size()) || (decimalsWithComma.size() > 0 && decimalsWithDot.size() == 0)) {
@@ -326,7 +282,6 @@ def gui(){
 	if (decimalSeparator != null) console.println("decimalSeparator: '${decimalSeparator}'\n")
 	console.println()
 
-
 	console.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
 
 	def segm_count = 0;
@@ -334,14 +289,16 @@ def gui(){
 	project.allEntries.each { ste ->
 
 		editor.gotoEntry(ste.entryNum())
-		
+
 		def sourceText = ste.getSrcText();
 		def targetText = project.getTranslationInfo(ste) ? project.getTranslationInfo(ste).translation : null;
 
 		def idProp = ste.key ? ste.key.id : null;
 		def fileProp = ste.key ? ste.key.file : null;
 
+		// if (sourceText ==~ /(0[.,]3|0[.,]4|0[.,]5|0[.,]7|0[.,]9|1[.,]5|18[.,]5|19[.,]5|20[.,]8|27[.,]8|5[.,]4|6[.,]2|628[.,]2)/)
 		def newTargetText = findUpdate(sourceText, idProp, fileProp, targetText, decimalSeparator)
+		// console.println("updated newTargetText: ${newTargetText}")
 
 		if (newTargetText && targetText != newTargetText) {
 			segm_count++;
