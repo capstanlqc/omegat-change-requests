@@ -1,6 +1,18 @@
 /* :name = Translation updates :description=
  * 
  * @author      Manuel Souto Pico, Kos Ivantsov
+ * @date        2024-10-04
+ * @version     0.0.1
+ */
+
+/* 
+ * @versions: 
+ * 0.0.1: 	Based on pseudo-translate script
+ */
+
+/* :name = Translation updates :description=
+ * 
+ * @author      Manuel Souto Pico, Kos Ivantsov
  * @date        2024-10-07
  * @version     0.0.1
  */
@@ -14,7 +26,7 @@
 
 // a ratio of 2 means that the most frequent group will twice (2) as much as the lest frequent group (e.g. 100 vs 50)
 // a ratio of 3 means that the most frequent group will three times (3) as much as the lest frequent group (e.g. 300 vs 100)
-threshold_ratio = 2 
+threshold_ratio = 4
 updateSeparators = false
 
 // documentation is available here: https://github.com/capstanlqc/omegat-translation-updates/blob/master/README.md
@@ -128,6 +140,8 @@ parsedData.each { row ->
 // 21={key=tu4_0, file=batch/S24030067.html, source=FOO, target=DEFAULT TRANSLATION ENTERED BY THE USER , update=BAR, locale=null}
 
 def changeSeparator(text, separator, type) {
+
+	if (separator == null || text == null) return text
 	
 	decimalExpressionPattern = ~/(?<=\d+)[.,](?=\d{1,2}(?!\d))/
 	thousandExpressionPattern = ~/(?<=\d+)[., ](?=\d{3}(?!\d))/
@@ -172,7 +186,8 @@ def findUpdate(sourceText, idProp, fileProp, targetText, decimalSeparator) {
 	}
 	
 	// return result?.value?.update ?: null
-	return result?.update ?: null
+	def newTargetText = result?.update ?: null
+	return changeSeparator(newTargetText, decimalSeparator, type = "decimal")
 }
 
 
@@ -283,20 +298,21 @@ def gui(){
 	if (updateSeparators == false) {
 		def highest = Math.max(decimalsWithComma.size(), decimalsWithDot.size())
 		def lowest = Math.min(decimalsWithComma.size(), decimalsWithDot.size())
-		def proportion = highest / lowest
-
-		if (proportion > threshold_ratio) {
+		if (lowest != 0) {
+			def proportion = highest / lowest
+			if (proportion > threshold_ratio) {
 			updateSeparators = true
-		}	
+			}
+		}
 	}
 
 
 	decimalSeparator = null
 	if ((updateSeparators && decimalsWithComma.size() > decimalsWithDot.size()) || (decimalsWithComma.size() > 0 && decimalsWithDot.size() == 0)) {
-		console.println("I will use comma as decimal separator!\n")
+		console.println("I will use comma as decimal separator!")
 		decimalSeparator = ","
 	} else if ((updateSeparators && decimalsWithComma.size() < decimalsWithDot.size()) || (decimalsWithComma.size() == 0 && decimalsWithDot.size() > 0)) {
-		console.println("I will use dot as decimal separator!\n")
+		console.println("I will use dot as decimal separator!")
 		decimalSeparator = "."
 	} else {
 		console.println("Dear user, \n\nIt is not possible to determine whether decimal separators must be a comma or a dot and automate that harmonization reliably. "+
@@ -329,8 +345,7 @@ def gui(){
 
 		if (newTargetText && targetText != newTargetText) {
 			segm_count++;
-			if (!decimalSeparator) editor.replaceEditText(newTargetText)
-			else editor.replaceEditText(changeSeparator(newTargetText, decimalSeparator, type = "decimal"))
+			editor.replaceEditText(newTargetText)
 		}
 	}
 	console.println(segm_count + " updated translations")
