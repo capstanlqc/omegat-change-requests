@@ -1,18 +1,6 @@
 /* :name = Translation updates :description=
  * 
  * @author      Manuel Souto Pico, Kos Ivantsov
- * @date        2024-10-04
- * @version     0.0.1
- */
-
-/* 
- * @versions: 
- * 0.0.1: 	Based on pseudo-translate script
- */
-
-/* :name = Translation updates :description=
- * 
- * @author      Manuel Souto Pico, Kos Ivantsov
  * @date        2024-10-07
  * @version     0.0.1
  */
@@ -47,7 +35,7 @@ prop = project.projectProperties
 rootDirPath = prop.getProjectRoot()
 configDir = StaticUtils.getConfigDir()
 // filePath = rootDirPath + File.separator + "config" + File.separator + "change_requests.xlsx"
-filePath = configDir + File.separator + "changes" + File.separator + "change_requests.xlsx"
+filePath = configDir + File.separator + "changes" + File.separator + "translation_updates.xlsx"
 
 
 

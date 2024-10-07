@@ -90,6 +90,7 @@ If some manual harmonization is necessary, you will get some info and the list o
 ## Backlog
 
 - If one entry in the updates sheet provides key and file but the current translation is not alternative, make it alternative (to prevent auto-propagation)
+- The script should run on the command line (`console-translate` mode)
 - Validate changes spreadsheet: run some checks in the structure of the file: find the expected sheet and columns in it
 - Bookmark the initial segment before running the script and go back to it after the script has run
 - Do the replacement for the specified target language(s)
