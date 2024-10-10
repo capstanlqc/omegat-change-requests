@@ -288,8 +288,6 @@ def gui(){
 
 	project.allEntries.each { ste ->
 
-		editor.gotoEntry(ste.entryNum())
-
 		def sourceText = ste.getSrcText();
 		def targetText = project.getTranslationInfo(ste) ? project.getTranslationInfo(ste).translation : null;
 
@@ -302,6 +300,7 @@ def gui(){
 
 		if (newTargetText && targetText != newTargetText) {
 			segm_count++;
+			editor.gotoEntry(ste.entryNum())
 			editor.replaceEditText(newTargetText)
 		}
 	}
